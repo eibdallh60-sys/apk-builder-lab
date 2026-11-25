@@ -1,0 +1,31 @@
+name: Build & Package Web Lab
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  package-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify project files
+        run: |
+          ls -la
+          test -f index.html && echo "index.html found" || echo "index.html missing"
+
+      - name: Create release zip bundle
+        run: |
+          mkdir -p dist
+          cp -r . dist/app_bundle 2>/dev/null || true
+          zip -r dist/web-lab-bundle.zip index.html -x ".git/*" ".github/*"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-lab-package
+          path: dist/web-lab-bundle.zip
