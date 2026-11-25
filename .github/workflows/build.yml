@@ -1,4 +1,4 @@
-name: Build & Package Web Lab
+name: Build Android APK
 
 on:
   push:
@@ -6,25 +6,73 @@ on:
   workflow_dispatch:
 
 jobs:
-  package-web:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check HTML files
-        run: |
-          ls -la
-          ls -la *.html || true
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-      - name: Create release zip bundle
-        run: |
-          mkdir -p dist
-          zip -r dist/web-lab-bundle.zip *.html -x ".git/*" ".github/*"
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
 
-      - name: Upload build artifact
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare web assets in www/
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Initialize Capacitor and add Android platform
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "MyWebApp" "com.eibdallh60.mywebapp" --web-dir=www
+          npx cap add android
+          npx cap copy android
+
+      - name: Add Android permissions to AndroidManifest.xml
+        run: |
+          python3 - <<'EOF'
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          perms = [
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.CAMERA" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
+              '<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />',
+              '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />',
+              '<uses-permission android:name="android.permission.VIBRATE" />'
+          ]
+
+          insert_block = "\n    " + "\n    ".join(perms) + "\n"
+          if "<application" in content and perms[1] not in content:
+              content = content.replace("<application", insert_block + "\n    <application", 1)
+
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(content)
+          EOF
+
+      - name: Build Debug APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-lab-package
-          path: dist/web-lab-bundle.zip
+          name: android-apk-build
+          path: android/app/build/outputs/apk/debug/app-debug.apk
