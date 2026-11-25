@@ -3,195 +3,486 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>بوابة تعديل وبناء APK</title>
+<title>مختبر وصانع تطبيقات الويب</title>
 <style>
 :root{
   --bg:#0b0f14; --card:#131a22; --text:#f3f4f6; --muted:#9ca3af;
-  --border:#263241; --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+  --border:#263241; --accent:#22c55e; --danger:#ef4444; --info:#38bdf8; --warn:#f59e0b;
 }
 *{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
 body{margin:0;background:var(--bg);color:var(--text);padding:20px}
-.wrap{max-width:650px;margin:0 auto}
+.wrap{max-width:720px;margin:0 auto}
 h1{margin:0 0 6px;font-size:1.5rem;color:var(--accent)}
-.sub{margin:0 0 20px;color:var(--muted);font-size:0.9rem}
+.sub{margin:0 0 18px;color:var(--muted);font-size:0.9rem}
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px}
-label{display:block;font-size:0.9rem;color:var(--muted);margin:10px 0 6px}
-input[type="text"], input[type="url"], input[type="file"]{
-  width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);
-  background:#0d131a;color:var(--text);font-size:0.92rem
+.card-title{font-weight:700;font-size:1rem;margin-bottom:10px;display:block;color:#e5e7eb}
+label{display:block;font-size:0.86rem;color:var(--muted);margin:10px 0 5px}
+input{
+  width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);
+  background:#0d131a;color:var(--text);font-size:0.92rem;outline:none
 }
-.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.check-item{
-  background:#0d131a;border:1px solid var(--border);border-radius:8px;
-  padding:10px;font-size:0.85rem;display:flex;align-items:center;gap:8px
-}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+input:focus{border-color:var(--accent)}
+code{background:#0d131a;padding:2px 6px;border-radius:4px;color:#93c5fd}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 button{
-  width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);
-  background:#1b2530;color:var(--text);font-weight:600;cursor:pointer;font-size:0.95rem
+  width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);
+  background:#1b2530;color:var(--text);font-weight:600;cursor:pointer;font-size:0.92rem
 }
 button:hover{border-color:var(--accent)}
 .btn-accent{background:var(--accent);color:#052e16;border:none}
+.btn-info{background:var(--info);color:#082f49;border:none}
+.btn-warn{background:var(--warn);color:#1f1300;border:none}
 .btn-danger{background:var(--danger);color:#fff;border:none}
 .status{font-size:0.8rem;color:var(--muted);margin-top:6px;display:block}
 .log-item{
   background:#0d131a;border:1px solid var(--border);border-radius:8px;
-  padding:12px;margin-top:10px;font-size:0.88rem;line-height:1.6
+  padding:12px;margin-top:10px;font-size:0.88rem;line-height:1.55
 }
+.log-item img, .log-item video{
+  width:100%;max-height:320px;object-fit:contain;border-radius:6px;margin-top:8px;background:#000
+}
+.bottom-status{
+  background:#0d131a;border:1px solid var(--border);border-radius:10px;
+  padding:14px;margin-top:10px;min-height:54px;line-height:1.6;font-size:0.92rem
+}
+.ok{color:var(--accent);font-weight:700}
+.err{color:var(--danger);font-weight:700}
+.hint{color:var(--muted);font-size:0.8rem;margin-top:8px;line-height:1.5}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>بوابة تعديل وبناء APK</h1>
-  <p class="sub">رفع ملف APK وتجهيز إعدادات التعديل والربط عبر خادم البناء</p>
+  <h1>مختبر وصانع تطبيقات الويب</h1>
+  <p class="sub">الواجهة الكاملة: إعدادات الحساب والمستودع + الصلاحيات والملفات + صناعة التطبيق ومتابعة البناء</p>
 
+  <!-- 1. إعدادات اليوزر والمفتاح والمستودع -->
   <div class="card">
-    <label>1. اختر ملف التطبيق الأصلي (.apk)</label>
-    <input type="file" id="apkFile" accept=".apk,application/vnd.android.package-archive" onchange="inspectApk()">
+    <span class="card-title">1. إعدادات الحساب والـ API والمستودع</span>
 
-    <label>2. اسم التطبيق الجديد</label>
-    <input type="text" id="newAppName" placeholder="مثال: MyApp Updated">
+    <label>اسم المستخدم (User)</label>
+    <input type="text" id="ghUser" placeholder="مثال: eibdallh60-sys">
 
-    <label>3. رابط الخادم / API للربط</label>
-    <input type="url" id="serverUrl" placeholder="https://example.com/api">
+    <label>اسم المستودع (Repository)</label>
+    <input type="text" id="ghRepo" placeholder="مثال: apk-builder-lab">
 
-    <label>4. عنوان خادم البناء (Build Endpoint)</label>
-    <input type="url" id="buildEndpoint" value="https://your-server.example.com/build-apk">
+    <label>مفتاح الـ API / Token (Personal Access Token)</label>
+    <input type="password" id="ghToken" placeholder="أدخل التوكن الخاص بحسابك">
 
-    <label>5. الصلاحيات المطلوبة في Manifest</label>
-    <div class="checks">
-      <label class="check-item"><input type="checkbox" value="android.permission.CAMERA" checked> الكاميرا (CAMERA)</label>
-      <label class="check-item"><input type="checkbox" value="android.permission.INTERNET" checked> الإنترنت (INTERNET)</label>
-      <label class="check-item"><input type="checkbox" value="android.permission.READ_MEDIA_IMAGES"> الصور والملفات</label>
-      <label class="check-item"><input type="checkbox" value="android.permission.RECORD_AUDIO"> الميكروفون</label>
+    <div class="grid">
+      <button onclick="saveConfig()">💾 حفظ الإعدادات</button>
+      <button class="btn-accent" onclick="loginAndOpen()">🚀 دخول والانتقال للمستودع</button>
     </div>
 
     <div class="grid">
-      <div>
-        <button class="btn-accent" onclick="sendToBuilder()">⚙️ إرسال لبناء APK</button>
-        <span class="status" id="stBuild">بانتظار ملف APK</span>
-      </div>
-      <div>
-        <button id="dlApkBtn" onclick="downloadBuiltApk()" disabled>⬇️ تحميل ملف APK</button>
-        <span class="status" id="stDownload">غير جاهز بعد</span>
-      </div>
+      <button class="btn-warn" onclick="sendRepoDispatch()">📡 إرسال إشارة ربط للمستودع</button>
+      <button class="btn-danger" onclick="clearConfig()">🗑️ مسح الإعدادات</button>
     </div>
+
+    <p class="hint">يتم حفظ البيانات محلياً في متصفحك فقط (localStorage). عند الضغط على «دخول والانتقال» يتم التحقق عبر GitHub API ثم فتح المستودع في تبويب جديد.</p>
   </div>
 
+  <!-- 2. أدوات الصلاحيات والملفات -->
   <div class="card">
-    <strong>اختبار الصلاحيات المباشر في المتصفح:</strong>
+    <span class="card-title">2. الصلاحيات والملفات</span>
     <div class="grid">
-      <button onclick="testCamera()">📷 اختبار الكاميرا</button>
-      <button onclick="testScreen()">🖥️ مشاركة الشاشة</button>
+      <div>
+        <button class="btn-accent" onclick="takePhoto()">📷 التقاط صورة بالكاميرا</button>
+        <span class="status" id="stCam">جاهز</span>
+      </div>
+      <div>
+        <button onclick="startScreenShare()">🖥️ مشاركة الشاشة</button>
+        <span class="status" id="stScreen">جاهز</span>
+      </div>
+      <div>
+        <button onclick="pickFile()">📂 اختيار ملف</button>
+        <span class="status" id="stFile">جاهز</span>
+      </div>
+      <div>
+        <button onclick="downloadSample()">⬇️ تحميل ملف تجريبي</button>
+        <span class="status" id="stDl">ملف نصي تجريبي (.txt)</span>
+      </div>
     </div>
-    <div style="margin-top:10px">
-      <button class="btn-danger" onclick="stopStreams()">⏹ إيقاف البث</button>
+
+    <div style="margin-top:12px">
+      <button class="btn-danger" onclick="stopAllStreams()">⏹ إيقاف البث وإغلاق الكاميرا</button>
     </div>
   </div>
 
+  <!-- 3. الميزة الأولى: صناعة التطبيقات -->
   <div class="card">
-    <strong>السجل والنتائج:</strong>
+    <span class="card-title">3. صناعة التطبيقات (تشغيل البناء عبر GitHub Actions)</span>
+    <label>اسم ملف الـ Workflow في المستودع</label>
+    <input type="text" id="wfFile" value="build.yml">
+    <div style="margin-top:12px">
+      <button class="btn-accent" onclick="buildAppFromLab()">🛠️ بدء صناعة التطبيق</button>
+      <span class="status" id="stBuildApp">يرسل طلب تشغيل البناء إلى المستودع</span>
+    </div>
+  </div>
+
+  <!-- 4. الميزة الثانية: متابعة حالة البناء وجلب الناتج -->
+  <div class="card">
+    <span class="card-title">4. متابعة حالة البناء وتحميل الناتج</span>
+    <label>اسم ملف الـ Workflow للمراقبة</label>
+    <input type="text" id="wfCheckName" value="build.yml">
+    <div style="margin-top:12px">
+      <button class="btn-info" onclick="checkLatestBuild()">🔍 فحص حالة آخر بناء وجلب الناتج</button>
+      <span class="status" id="stCheckBuild">يتحقق من آخر تشغيل في Actions والـ Artifacts</span>
+    </div>
+    <div id="buildResultBox" style="margin-top:10px"></div>
+  </div>
+
+  <!-- 5. السجل والنتائج -->
+  <div class="card">
+    <span class="card-title">5. سجل العمليات</span>
     <div id="log"></div>
+  </div>
+
+  <!-- 6. رسالة حالة الدخول والربط بالأسفل -->
+  <div class="card">
+    <span class="card-title">6. حالة تسجيل الدخول والربط (الرسالة السفلية)</span>
+    <div class="bottom-status" id="bottomMsg">جاهز — أدخل بياناتك أو جرّب أزرار الصلاحيات والبناء.</div>
   </div>
 </div>
 
 <script>
-let builtApkUrl = null;
+const CFG_KEY = "unified_lab_repo_cfg_v1";
 let activeStreams = [];
 
-function addLog(title, details) {
+function setStatus(id, text) {
+  document.getElementById(id).textContent = text;
+}
+
+function setBottomMsg(html, type = "") {
+  const box = document.getElementById("bottomMsg");
+  const cls = type === "ok" ? "ok" : type === "err" ? "err" : "";
+  box.innerHTML = cls ? `<span class="${cls}">${html}</span>` : html;
+}
+
+function addLog(title, extraHtml = "") {
   const log = document.getElementById("log");
   const div = document.createElement("div");
   div.className = "log-item";
-  div.innerHTML = `<strong>${title}</strong><br>${details}`;
+  div.innerHTML = `<strong>${title}</strong>${extraHtml}`;
   log.prepend(div);
 }
 
-function inspectApk() {
-  const file = document.getElementById("apkFile").files[0];
-  if (!file) return;
-  const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-  document.getElementById("stBuild").textContent = `تم اختيار: ${file.name}`;
-  addLog("📦 تم فحص الملف محلياً", `الاسم: ${file.name}<br>الحجم: ${sizeMB} MB`);
+function getConfig() {
+  return {
+    user: document.getElementById("ghUser").value.trim(),
+    repo: document.getElementById("ghRepo").value.trim(),
+    token: document.getElementById("ghToken").value.trim()
+  };
 }
 
-async function sendToBuilder() {
-  const file = document.getElementById("apkFile").files[0];
-  const appName = document.getElementById("newAppName").value.trim();
-  const serverUrl = document.getElementById("serverUrl").value.trim();
-  const endpoint = document.getElementById("buildEndpoint").value.trim();
+function saveConfig() {
+  const cfg = getConfig();
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  setBottomMsg("✅ تم حفظ إعدادات اليوزر والمستودع والمفتاح محلياً.", "ok");
+  addLog("💾 حفظ الإعدادات", `<br>المستخدم: ${cfg.user || "غير محدد"} | المستودع: ${cfg.repo || "غير محدد"}`);
+}
 
-  if (!file) {
-    document.getElementById("stBuild").textContent = "اختر ملف .apk أولاً";
+function loadConfig() {
+  const raw = localStorage.getItem(CFG_KEY);
+  if (!raw) return;
+  try {
+    const cfg = JSON.parse(raw);
+    if (cfg.user) document.getElementById("ghUser").value = cfg.user;
+    if (cfg.repo) document.getElementById("ghRepo").value = cfg.repo;
+    if (cfg.token) document.getElementById("ghToken").value = cfg.token;
+    if (cfg.user || cfg.repo || cfg.token) {
+      setBottomMsg("ℹ️ تم استرجاع الإعدادات المحفوظة مسبقاً.", "");
+    }
+  } catch (_) {}
+}
+
+function clearConfig() {
+  localStorage.removeItem(CFG_KEY);
+  document.getElementById("ghUser").value = "";
+  document.getElementById("ghRepo").value = "";
+  document.getElementById("ghToken").value = "";
+  setBottomMsg("تم مسح الإعدادات المحفوظة.", "");
+  addLog("🗑️ مسح الإعدادات", "<br>تم تفريغ بيانات الحساب والمفتاح والمستودع.");
+}
+
+async function loginAndOpen() {
+  const { user, repo, token } = getConfig();
+  if (!token) {
+    setBottomMsg("❌ أدخل مفتاح الـ API / Token أولاً للتحقق من الدخول.", "err");
     return;
   }
 
-  const perms = Array.from(document.querySelectorAll(".checks input:checked")).map(c => c.value);
-
-  const formData = new FormData();
-  formData.append("apk", file);
-  formData.append("appName", appName || file.name.replace(".apk", ""));
-  formData.append("serverUrl", serverUrl);
-  formData.append("permissions", JSON.stringify(perms));
-
-  document.getElementById("stBuild").textContent = "جاري الإرسال إلى خادم البناء...";
-  addLog("🚀 إرسال طلب بناء", `التطبيق: ${appName || file.name}<br>الرابط: ${serverUrl || "بدون رابط"}<br>الصلاحيات: ${perms.join(", ")}`);
+  saveConfig();
+  setBottomMsg("⏳ جاري التحقق من الحساب عبر GitHub API...", "");
 
   try {
-    const res = await fetch(endpoint, { method: "POST", body: formData });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetch("https://api.github.com/user", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github+json"
+      }
+    });
+    if (!res.ok) throw new Error(`رمز الاستجابة ${res.status}`);
     const data = await res.json();
+    const accountName = data.login || user || "المستخدم";
 
-    if (data.apkUrl) {
-      builtApkUrl = data.apkUrl;
-      document.getElementById("dlApkBtn").disabled = false;
-      document.getElementById("stBuild").textContent = "اكتمل البناء بنجاح";
-      document.getElementById("stDownload").textContent = "جاهز للتحميل (.apk)";
-      addLog("✅ اكتمل بناء APK", `رابط التحميل جاهز من الخادم.`);
-    } else {
-      throw new Error("الخادم لم يُرجع رابط apkUrl");
-    }
+    setBottomMsg(`لقد تم تسجيل الدخول بنجاح — الحساب: ${accountName}`, "ok");
+    addLog("🔐 تسجيل الدخول", `<br>تم التحقق بنجاح لحساب: <strong>${accountName}</strong>`);
+
+    const targetUrl = (accountName && repo)
+      ? `https://github.com/${accountName}/${repo}`
+      : (accountName ? `https://github.com/${accountName}` : "https://github.com");
+
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   } catch (err) {
-    document.getElementById("stBuild").textContent = "تعذر الاتصال بخادم البناء";
-    addLog("⚠️ ملاحظة الخادم", `المتصفح لا يبني APK وحده؛ يجب تشغيل خادم بناء حقيقي على العنوان:<br><code>${endpoint}</code><br>الخطأ: ${err.message}`);
+    setBottomMsg(`❌ فشل تسجيل الدخول: ${err.message}`, "err");
+    addLog("⚠️ خطأ تسجيل الدخول", `<br>${err.message}`);
   }
 }
 
-function downloadBuiltApk() {
-  if (!builtApkUrl) return;
+async function sendRepoDispatch() {
+  const { user, repo, token } = getConfig();
+  if (!user || !repo || !token) {
+    setBottomMsg("❌ لإرسال إشارة للمستودع، أدخل اليوزر واسم المستودع والمفتاح.", "err");
+    return;
+  }
+
+  setBottomMsg("⏳ جاري إرسال إشارة الربط إلى المستودع...", "");
+  try {
+    const url = `https://api.github.com/repos/${user}/${repo}/dispatches`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        event_type: "lab_connection_ping",
+        client_payload: {
+          source: "browser-lab",
+          timestamp: new Date().toISOString()
+        }
+      })
+    });
+
+    if (res.status === 204 || res.ok) {
+      setBottomMsg(`✅ تم إرسال إشارة الربط إلى المستودع ${user}/${repo} بنجاح.`, "ok");
+      addLog("📡 إشارة المستودع", `<br>أُرسلت إشارة <code>lab_connection_ping</code> إلى <strong>${user}/${repo}</strong>.`);
+    } else {
+      throw new Error(`رمز الاستجابة ${res.status} (تأكد من صلاحية التوكن واسم المستودع)`);
+    }
+  } catch (err) {
+    setBottomMsg(`❌ تعذر إرسال الإشارة للمستودع: ${err.message}`, "err");
+    addLog("⚠️ خطأ إرسال الإشارة", `<br>${err.message}`);
+  }
+}
+
+async function buildAppFromLab() {
+  const { user, repo, token } = getConfig();
+  const wf = (document.getElementById("wfFile")?.value || "build.yml").trim();
+
+  if (!user || !repo || !token) {
+    setBottomMsg("❌ أدخل اليوزر واسم المستودع والمفتاح أولاً من الإعدادات.", "err");
+    return;
+  }
+
+  setStatus("stBuildApp", "جاري إرسال أمر صناعة التطبيق...");
+  setBottomMsg("⏳ جاري تشغيل مهمة بناء التطبيق في GitHub Actions...", "");
+
+  try {
+    const url = `https://api.github.com/repos/${user}/${repo}/actions/workflows/${wf}/dispatches`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ref: "main",
+        inputs: {
+          source: "html-app-builder"
+        }
+      })
+    });
+
+    if (res.status === 204 || res.ok) {
+      setStatus("stBuildApp", "تم إرسال أمر البناء بنجاح — راجع تبويب Actions");
+      setBottomMsg(`✅ تم تشغيل مهمة صناعة التطبيق (${wf}) في المستودع ${user}/${repo}.`, "ok");
+      addLog("🛠️ صناعة التطبيق", `<br>تم إرسال طلب تشغيل <code>${wf}</code> إلى <strong>${user}/${repo}</strong>.`);
+    } else {
+      throw new Error(`رمز الاستجابة ${res.status}`);
+    }
+  } catch (err) {
+    setStatus("stBuildApp", "تعذر بدء البناء");
+    setBottomMsg(`❌ فشل تشغيل صناعة التطبيق: ${err.message}`, "err");
+    addLog("⚠️ خطأ صناعة التطبيق", `<br>${err.message}`);
+  }
+}
+
+async function checkLatestBuild() {
+  const { user, repo, token } = getConfig();
+  const wf = (document.getElementById("wfCheckName")?.value || "build.yml").trim();
+
+  if (!user || !repo || !token) {
+    setBottomMsg("❌ أدخل اليوزر واسم المستودع والمفتاح أولاً من الإعدادات.", "err");
+    return;
+  }
+
+  setStatus("stCheckBuild", "جاري فحص حالة آخر بناء...");
+  setBottomMsg("⏳ جاري التحقق من حالة البناء في GitHub Actions...", "");
+
+  try {
+    const apiUrl = `https://api.github.com/repos/${user}/${repo}/actions/workflows/${wf}/runs?per_page=1`;
+    const res = await fetch(apiUrl, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/vnd.github+json"
+      }
+    });
+
+    if (!res.ok) throw new Error(`رمز الاستجابة ${res.status}`);
+    const data = await res.json();
+    const run = data.workflow_runs && data.workflow_runs[0];
+
+    if (!run) {
+      setStatus("stCheckBuild", "لا توجد عمليات بناء مسجلة بعد");
+      setBottomMsg("ℹ️ لم يتم العثور على أي تشغيل سابق لهذا الـ Workflow.", "");
+      return;
+    }
+
+    const statusText = run.status;
+    const conclusionText = run.conclusion || "قيد التنفيذ";
+    const runUrl = run.html_url;
+
+    setStatus("stCheckBuild", `الحالة: ${statusText} | النتيجة: ${conclusionText}`);
+    setBottomMsg(`📊 آخر بناء (#${run.run_number}): الحالة (${statusText}) — النتيجة (${conclusionText}).`, "ok");
+
+    document.getElementById("buildResultBox").innerHTML = `
+      <div class="log-item">
+        <strong>رقم العملية: #${run.run_number}</strong><br>
+        الحالة: <code>${statusText}</code> | النتيجة: <code>${conclusionText}</code><br>
+        <a href="${runUrl}" target="_blank" rel="noopener noreferrer" style="color:#38bdf8;display:inline-block;margin-top:6px">
+          🔗 فتح صفحة البناء والملفات الناتجة (Artifacts)
+        </a>
+      </div>
+    `;
+    addLog("🔍 فحص البناء", `<br>العملية #${run.run_number} — الحالة: <code>${statusText}</code> (${conclusionText})`);
+  } catch (err) {
+    setStatus("stCheckBuild", "تعذر فحص حالة البناء");
+    setBottomMsg(`❌ خطأ أثناء فحص البناء: ${err.message}`, "err");
+    addLog("⚠️ خطأ فحص البناء", `<br>${err.message}`);
+  }
+}
+
+async function takePhoto() {
+  setStatus("stCam", "جاري طلب إذن الكاميرا...");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setStatus("stCam", "المتصفح لا يدعم الكاميرا");
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    activeStreams.push(stream);
+
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.muted = true;
+    await video.play();
+
+    if (!video.videoWidth || !video.videoHeight) {
+      await new Promise(resolve => { video.onloadedmetadata = resolve; });
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imgUrl = canvas.toDataURL("image/png");
+    stream.getTracks().forEach(t => t.stop());
+    activeStreams = activeStreams.filter(s => s !== stream);
+
+    setStatus("stCam", "تم الالتقاط بنجاح");
+    addLog("📷 صورة ملتقطة", `<img src="${imgUrl}" alt="Captured Photo">`);
+  } catch (err) {
+    setStatus("stCam", "تم رفض الإذن أو تعذر الوصول");
+    addLog("⚠️ خطأ الكاميرا", `<br>${err.message || "تعذر تشغيل الكاميرا"}`);
+  }
+}
+
+async function startScreenShare() {
+  setStatus("stScreen", "جاري طلب مشاركة الشاشة...");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    setStatus("stScreen", "المتصفح لا يدعم مشاركة الشاشة");
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+    activeStreams.push(stream);
+    setStatus("stScreen", "البث نشط");
+
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.controls = true;
+    video.autoplay = true;
+    video.muted = true;
+
+    stream.getVideoTracks()[0].addEventListener("ended", () => {
+      setStatus("stScreen", "تم إيقاف المشاركة");
+    });
+
+    addLog("🖥️ بث الشاشة", "");
+    document.getElementById("log").firstChild.appendChild(video);
+  } catch (err) {
+    setStatus("stScreen", "تم إلغاء المشاركة أو رفضها");
+  }
+}
+
+function pickFile() {
+  setStatus("stFile", "بانتظار اختيار ملف...");
+  const input = document.createElement("input");
+  input.type = "file";
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) {
+      setStatus("stFile", "لم يتم اختيار ملف");
+      return;
+    }
+    const sizeKB = (file.size / 1024).toFixed(2);
+    setStatus("stFile", `تم اختيار: ${file.name}`);
+    addLog("📂 ملف مختار", `<br>الاسم: ${file.name}<br>النوع: ${file.type || "غير محدد"}<br>الحجم: ${sizeKB} KB`);
+  };
+  input.click();
+}
+
+function downloadSample() {
+  const content = "ملف تجريبي لاختبار التحميل من المتصفح.\n";
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = builtApkUrl;
-  a.download = "modified-app.apk";
+  a.href = url;
+  a.download = "sample-note.txt";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setStatus("stDl", "تم إنشاء وتحميل sample-note.txt");
 }
 
-async function testCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    activeStreams.push(stream);
-    addLog("📷 الكاميرا", "تم منح الإذن وتشغيل الكاميرا بنجاح.");
-  } catch (e) {
-    addLog("⚠️ الكاميرا", e.message);
-  }
-}
-
-async function testScreen() {
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    activeStreams.push(stream);
-    addLog("🖥️ مشاركة الشاشة", "بدأ بث الشاشة بنجاح.");
-  } catch (e) {
-    addLog("⚠️ مشاركة الشاشة", e.message);
-  }
-}
-
-function stopStreams() {
-  activeStreams.forEach(s => s.getTracks().forEach(t => t.stop()));
+function stopAllStreams() {
+  activeStreams.forEach(stream => {
+    stream.getTracks().forEach(track => track.stop());
+  });
   activeStreams = [];
-  addLog("⏹ إيقاف", "تم إغلاق جميع البثوث النشطة.");
+  setStatus("stCam", "متوقف");
+  setStatus("stScreen", "متوقف");
+  addLog("⏹ تم الإيقاف", "<br>تم إغلاق جميع الكاميرات وبث الشاشة النشط.");
 }
+
+loadConfig();
 </script>
 </body>
 </html>
