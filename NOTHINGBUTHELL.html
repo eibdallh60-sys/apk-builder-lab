@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوابة تعديل وبناء APK</title>
+<style>
+:root{
+  --bg:#0b0f14; --card:#131a22; --text:#f3f4f6; --muted:#9ca3af;
+  --border:#263241; --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+}
+*{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);padding:20px}
+.wrap{max-width:650px;margin:0 auto}
+h1{margin:0 0 6px;font-size:1.5rem;color:var(--accent)}
+.sub{margin:0 0 20px;color:var(--muted);font-size:0.9rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px}
+label{display:block;font-size:0.9rem;color:var(--muted);margin:10px 0 6px}
+input[type="text"], input[type="url"], input[type="file"]{
+  width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);
+  background:#0d131a;color:var(--text);font-size:0.92rem
+}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.check-item{
+  background:#0d131a;border:1px solid var(--border);border-radius:8px;
+  padding:10px;font-size:0.85rem;display:flex;align-items:center;gap:8px
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+button{
+  width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);
+  background:#1b2530;color:var(--text);font-weight:600;cursor:pointer;font-size:0.95rem
+}
+button:hover{border-color:var(--accent)}
+.btn-accent{background:var(--accent);color:#052e16;border:none}
+.btn-danger{background:var(--danger);color:#fff;border:none}
+.status{font-size:0.8rem;color:var(--muted);margin-top:6px;display:block}
+.log-item{
+  background:#0d131a;border:1px solid var(--border);border-radius:8px;
+  padding:12px;margin-top:10px;font-size:0.88rem;line-height:1.6
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>بوابة تعديل وبناء APK</h1>
+  <p class="sub">رفع ملف APK وتجهيز إعدادات التعديل والربط عبر خادم البناء</p>
+
+  <div class="card">
+    <label>1. اختر ملف التطبيق الأصلي (.apk)</label>
+    <input type="file" id="apkFile" accept=".apk,application/vnd.android.package-archive" onchange="inspectApk()">
+
+    <label>2. اسم التطبيق الجديد</label>
+    <input type="text" id="newAppName" placeholder="مثال: MyApp Updated">
+
+    <label>3. رابط الخادم / API للربط</label>
+    <input type="url" id="serverUrl" placeholder="https://example.com/api">
+
+    <label>4. عنوان خادم البناء (Build Endpoint)</label>
+    <input type="url" id="buildEndpoint" value="https://your-server.example.com/build-apk">
+
+    <label>5. الصلاحيات المطلوبة في Manifest</label>
+    <div class="checks">
+      <label class="check-item"><input type="checkbox" value="android.permission.CAMERA" checked> الكاميرا (CAMERA)</label>
+      <label class="check-item"><input type="checkbox" value="android.permission.INTERNET" checked> الإنترنت (INTERNET)</label>
+      <label class="check-item"><input type="checkbox" value="android.permission.READ_MEDIA_IMAGES"> الصور والملفات</label>
+      <label class="check-item"><input type="checkbox" value="android.permission.RECORD_AUDIO"> الميكروفون</label>
+    </div>
+
+    <div class="grid">
+      <div>
+        <button class="btn-accent" onclick="sendToBuilder()">⚙️ إرسال لبناء APK</button>
+        <span class="status" id="stBuild">بانتظار ملف APK</span>
+      </div>
+      <div>
+        <button id="dlApkBtn" onclick="downloadBuiltApk()" disabled>⬇️ تحميل ملف APK</button>
+        <span class="status" id="stDownload">غير جاهز بعد</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>اختبار الصلاحيات المباشر في المتصفح:</strong>
+    <div class="grid">
+      <button onclick="testCamera()">📷 اختبار الكاميرا</button>
+      <button onclick="testScreen()">🖥️ مشاركة الشاشة</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn-danger" onclick="stopStreams()">⏹ إيقاف البث</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>السجل والنتائج:</strong>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+let builtApkUrl = null;
+let activeStreams = [];
+
+function addLog(title, details) {
+  const log = document.getElementById("log");
+  const div = document.createElement("div");
+  div.className = "log-item";
+  div.innerHTML = `<strong>${title}</strong><br>${details}`;
+  log.prepend(div);
+}
+
+function inspectApk() {
+  const file = document.getElementById("apkFile").files[0];
+  if (!file) return;
+  const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+  document.getElementById("stBuild").textContent = `تم اختيار: ${file.name}`;
+  addLog("📦 تم فحص الملف محلياً", `الاسم: ${file.name}<br>الحجم: ${sizeMB} MB`);
+}
+
+async function sendToBuilder() {
+  const file = document.getElementById("apkFile").files[0];
+  const appName = document.getElementById("newAppName").value.trim();
+  const serverUrl = document.getElementById("serverUrl").value.trim();
+  const endpoint = document.getElementById("buildEndpoint").value.trim();
+
+  if (!file) {
+    document.getElementById("stBuild").textContent = "اختر ملف .apk أولاً";
+    return;
+  }
+
+  const perms = Array.from(document.querySelectorAll(".checks input:checked")).map(c => c.value);
+
+  const formData = new FormData();
+  formData.append("apk", file);
+  formData.append("appName", appName || file.name.replace(".apk", ""));
+  formData.append("serverUrl", serverUrl);
+  formData.append("permissions", JSON.stringify(perms));
+
+  document.getElementById("stBuild").textContent = "جاري الإرسال إلى خادم البناء...";
+  addLog("🚀 إرسال طلب بناء", `التطبيق: ${appName || file.name}<br>الرابط: ${serverUrl || "بدون رابط"}<br>الصلاحيات: ${perms.join(", ")}`);
+
+  try {
+    const res = await fetch(endpoint, { method: "POST", body: formData });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.apkUrl) {
+      builtApkUrl = data.apkUrl;
+      document.getElementById("dlApkBtn").disabled = false;
+      document.getElementById("stBuild").textContent = "اكتمل البناء بنجاح";
+      document.getElementById("stDownload").textContent = "جاهز للتحميل (.apk)";
+      addLog("✅ اكتمل بناء APK", `رابط التحميل جاهز من الخادم.`);
+    } else {
+      throw new Error("الخادم لم يُرجع رابط apkUrl");
+    }
+  } catch (err) {
+    document.getElementById("stBuild").textContent = "تعذر الاتصال بخادم البناء";
+    addLog("⚠️ ملاحظة الخادم", `المتصفح لا يبني APK وحده؛ يجب تشغيل خادم بناء حقيقي على العنوان:<br><code>${endpoint}</code><br>الخطأ: ${err.message}`);
+  }
+}
+
+function downloadBuiltApk() {
+  if (!builtApkUrl) return;
+  const a = document.createElement("a");
+  a.href = builtApkUrl;
+  a.download = "modified-app.apk";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+async function testCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    activeStreams.push(stream);
+    addLog("📷 الكاميرا", "تم منح الإذن وتشغيل الكاميرا بنجاح.");
+  } catch (e) {
+    addLog("⚠️ الكاميرا", e.message);
+  }
+}
+
+async function testScreen() {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    activeStreams.push(stream);
+    addLog("🖥️ مشاركة الشاشة", "بدأ بث الشاشة بنجاح.");
+  } catch (e) {
+    addLog("⚠️ مشاركة الشاشة", e.message);
+  }
+}
+
+function stopStreams() {
+  activeStreams.forEach(s => s.getTracks().forEach(t => t.stop()));
+  activeStreams = [];
+  addLog("⏹ إيقاف", "تم إغلاق جميع البثوث النشطة.");
+}
+</script>
+</body>
+</html>
