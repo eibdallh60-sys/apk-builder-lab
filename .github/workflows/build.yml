@@ -82,6 +82,31 @@ jobs:
               f.write(content)
           EOF
 
+      - name: Fix Kotlin duplicate classes in Gradle
+        run: |
+          python3 - <<'EOF'
+          snippet = """
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+                      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
+                      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
+                  }
+              }
+          }
+          """
+          for gradle_file in ["android/build.gradle", "android/app/build.gradle"]:
+              try:
+                  with open(gradle_file, "r", encoding="utf-8") as f:
+                      txt = f.read()
+                  if "force \"org.jetbrains.kotlin:kotlin-stdlib:1.8.22\"" not in txt:
+                      with open(gradle_file, "w", encoding="utf-8") as f:
+                          f.write(txt + "\n" + snippet)
+              except FileNotFoundError:
+                  pass
+          EOF
+
       - name: Build Debug APK with Gradle
         run: |
           cd android
