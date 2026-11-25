@@ -13,16 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify project files
+      - name: Check HTML files
         run: |
           ls -la
-          test -f index.html && echo "index.html found" || echo "index.html missing"
+          ls -la *.html || true
 
       - name: Create release zip bundle
         run: |
           mkdir -p dist
-          cp -r . dist/app_bundle 2>/dev/null || true
-          zip -r dist/web-lab-bundle.zip index.html -x ".git/*" ".github/*"
+          zip -r dist/web-lab-bundle.zip *.html -x ".git/*" ".github/*"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
