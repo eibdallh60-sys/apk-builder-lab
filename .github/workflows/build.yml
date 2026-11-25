@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Setup Java
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: "21"
 
       - name: Install Android SDK & Accept All Licenses
         run: |
@@ -73,8 +73,9 @@ jobs:
               '<uses-permission android:name="android.permission.VIBRATE" />'
           ]
 
-          insert_block = "\n    " + "\n    ".join(perms) + "\n"
-          if "<application" in content and perms[1] not in content:
+          missing = [p for p in perms if p not in content]
+          if missing and "<application" in content:
+              insert_block = "\n    " + "\n    ".join(missing) + "\n"
               content = content.replace("<application", insert_block + "\n    <application", 1)
 
           with open(path, "w", encoding="utf-8") as f:
